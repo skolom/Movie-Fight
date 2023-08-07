@@ -1,7 +1,6 @@
 //Reusable Auto-Complete fucntion
-  createAutoComplete({
-    root: document.querySelector('.autocomplete'),
 
+createAutoCompleteConfig = {
     renderOption(movie) {
         const imgSrc = movie.Poster === 'N/A' ? '': movie.Poster;
         return `
@@ -9,9 +8,7 @@
          ${movie.Title} (${movie.Year})
         `;
     },
-    onOptionSelect(movie){
-        onMovieSelect(movie);
-    },
+    
 
     inputValue(movie) {
         return movie.Title
@@ -33,12 +30,31 @@
         return response.data.Search;
     }
 
-  });
+}  
+
+  createAutoComplete({
+    ...createAutoCompleteConfig,
+    root: document.querySelector('#left-autocomplete'),
+    onOptionSelect(movie){
+        document.querySelector('.tutorial').classList.add('is-hidden');
+        onMovieSelect(movie, document.querySelector('#left-summary'));
+    },
+
+ });
+
+ createAutoComplete({
+    ...createAutoCompleteConfig,
+    root: document.querySelector('#right-autocomplete'),
+    onOptionSelect(movie){
+        document.querySelector('.tutorial').classList.add('is-hidden');
+        onMovieSelect(movie, document.querySelector('#right-summary'));
+    },
+ });
 
 
 
   //follow Up request
-  const onMovieSelect = async movie => {
+  const onMovieSelect = async (movie, summaryElement) => {
     const response = await axios.get('http://www.omdbapi.com/', {
         params: {
             apikey: 'deca4351',
@@ -46,7 +62,7 @@
         }
     });
 
-    document.querySelector('#summary').innerHTML = movieTemplate(response.data)
+    summaryElement.innerHTML = movieTemplate(response.data)
   }
 
 
