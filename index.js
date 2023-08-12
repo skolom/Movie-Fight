@@ -37,7 +37,7 @@ createAutoCompleteConfig = {
     root: document.querySelector('#left-autocomplete'),
     onOptionSelect(movie){
         document.querySelector('.tutorial').classList.add('is-hidden');
-        onMovieSelect(movie, document.querySelector('#left-summary'));
+        onMovieSelect(movie, document.querySelector('#left-summary'),'left');
     },
 
  });
@@ -47,14 +47,15 @@ createAutoCompleteConfig = {
     root: document.querySelector('#right-autocomplete'),
     onOptionSelect(movie){
         document.querySelector('.tutorial').classList.add('is-hidden');
-        onMovieSelect(movie, document.querySelector('#right-summary'));
+        onMovieSelect(movie, document.querySelector('#right-summary'), 'right');
     },
  });
 
-
+   let leftMovie;
+   let rightMovie; 
 
   //follow Up request
-  const onMovieSelect = async (movie, summaryElement) => {
+  const onMovieSelect = async (movie, summaryElement, side) => {
     const response = await axios.get('http://www.omdbapi.com/', {
         params: {
             apikey: 'deca4351',
@@ -63,15 +64,49 @@ createAutoCompleteConfig = {
     });
 
     summaryElement.innerHTML = movieTemplate(response.data)
+
+    if (side === 'left') {
+       leftMovie = response.data;  
+    } else{
+        rightMovie = response.data;
+    }
+
+    if (leftMovie && rightMovie) {
+        runComparison();
+    }
+  };
+
+
+  const runComparison = () =>{
+    // find the first 'article' element for each movie
+    // Run a comparison on the # of awards
+    // then apply some styling to that "article" element
+
+
   }
 
 
   const movieTemplate = (movieDetail) => {
 
+    // '$629,000,000' to "629000000" 
+    const dollars = parseInt(movieDetail.BoxOffice.replace(/\$/g, '').replace(/,/g, ''));
+    const Metascore = parseInt(movieDetail.Metascore);
+    const imdbRating = parseFloat(movieDetail.imdbRating);
+    const imdbVotes = parseInt(movieDetail.imdbVotes.replace(/,/g, ''));
+    const awards  = movieDetail.Awards.split(' ').reduce((prev, word) => {
+        const value = parseInt(word);
+        
+        if (isNaN(value)) {
+            return prev; 
+        } else {
+            return prev+ value;
+        };
+    }, 0);
+
+
     // Expanded summary and Statistics
     return `
 
-    
     <article class ="media">
         <figure class ="media-left">
         <p class ="image">
@@ -88,23 +123,23 @@ createAutoCompleteConfig = {
     </article>
     
     
-    <article class ="notification is-primary">
+    <article data-value=${awards} class ="notification is-primary">
         <p class = "tittle"> ${movieDetail.Awards}</p>
         <p class ="subtitle">Awards</p>
     </article>  
-    <article class ="notification is-primary">
+    <article data-value=${dollars} class ="notification is-primary">
         <p class = "tittle"> ${movieDetail.BoxOffice}</p>
         <p class ="subtitle">BoxOffice</p>
     </article> 
-    <article class ="notification is-primary">
+    <article data-value=${Metascore} class ="notification is-primary">
         <p class = "tittle"> ${movieDetail.Metascore}</p>
         <p class ="subtitle">Metascore</p>
     </article> 
-    <article class ="notification is-primary">
+    <article data-value=${imdbRating} class ="notification is-primary">
         <p class = "tittle"> ${movieDetail.imdbRating}</p>
         <p class ="subtitle">IMDB Rating</p>
     </article> 
-    <article class ="notification is-primary">
+    <article data-value=${imdbVotes} class ="notification is-primary">
         <p class = "tittle"> ${movieDetail.imdbVotes}</p>
         <p class ="subtitle">IMDB Votes</p>
     </article>   
